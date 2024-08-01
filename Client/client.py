@@ -42,15 +42,19 @@ def send_command(command):
         if cmd == "/store" and len(parts) == 2:
             filename = parts[1]
             if os.path.exists(filename):
-                print("File Found!!!")
                 client_socket.send(command.encode())
-                with open(filename, "rb") as f:
-                    while True:
-                        data = f.read(BUFFER_SIZE)
-                        if not data:
-                            break
-                        client_socket.send(data)
-                client_socket.send(b"")  # Indicate the end of file transfer
+                response = client_socket.recv(BUFFER_SIZE).decode()
+                print(response)
+                if response.startswith("Ready to receive"):
+                    with open(filename, "rb") as f:
+                        while True:
+                            data = f.read(BUFFER_SIZE)
+                            if not data:
+                                break
+                            client_socket.send(data)
+                    client_socket.send(b"<END>")  # Indicate the end of file transfer
+                else:
+                    print(response)
             else:
                 print("Error: File not found.")
         else:

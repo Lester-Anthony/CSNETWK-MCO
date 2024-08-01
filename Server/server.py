@@ -3,12 +3,11 @@ import threading
 import os
 import datetime
 
-SERVER_HOST = '0.0.0.0'  # Listen on all available network interfaces
+SERVER_HOST = '0.0.0.0'
 SERVER_PORT = 12345
 BUFFER_SIZE = 1024
 DIRECTORY = "server_files"
 
-# Ensure the directory exists
 os.makedirs(DIRECTORY, exist_ok=True)
 
 clients = {}
@@ -20,9 +19,9 @@ def handle_client(client_socket, client_address):
             msg = client_socket.recv(BUFFER_SIZE).decode()
             if not msg:
                 break
-            response, file_transfer, filename = process_command(client_socket, msg, handle)
+            response, file_transfer, filename, handle = process_command(client_socket, msg, handle)
             if file_transfer:
-                store_file(filename, client_socket, handle)
+                receive_file(filename, client_socket, handle)
             else:
                 client_socket.send(response.encode())
         except Exception as e:
@@ -37,36 +36,35 @@ def process_command(client_socket, msg, handle):
     command = parts[0]
     
     if command == "/register" and len(parts) == 2:
-        return register_handle(parts[1], client_socket), False, None
+        response, handle = register_handle(parts[1], client_socket)
+        return response, False, None, handle
     elif command == "/store" and len(parts) == 2:
-        return f"Ready to receive {parts[1]}", True, parts[1]
+        if not handle:
+            return "Error: Please register a handle first.", False, None, handle
+        return f"Ready to receive {parts[1]}", True, parts[1], handle
     elif command == "/dir":
-        return list_directory(), False, None
+        return list_directory(), False, None, handle
     elif command == "/get" and len(parts) == 2:
-        return get_file(parts[1], client_socket), False, None
+        return get_file(parts[1], client_socket), False, None, handle
     elif command == "/leave":
-        return "Connection closed. Thank you!", False, None
+        return "Connection closed. Thank you!", False, None, handle
     elif command == "/?":
-        return show_help(), False, None
+        return show_help(), False, None, handle
     else:
-        return "Error: Command not found or invalid parameters.", False, None
+        return "Error: Command not found or invalid parameters.", False, None, handle
 
 def register_handle(handle, client_socket):
     if handle in clients:
-        return "Error: Registration failed. Handle or alias already exists."
+        return "Error: Registration failed. Handle or alias already exists.", None
     clients[handle] = client_socket
-    return f"Welcome {handle}!"
+    return f"Welcome {handle}!", handle
 
-def store_file(filename, client_socket, handle):
-    if not handle:
-        client_socket.send("Error: Please register a handle first.".encode())
-        return
-    
+def receive_file(filename, client_socket, handle):
     filepath = os.path.join(DIRECTORY, filename)
     with open(filepath, "wb") as f:
         while True:
             data = client_socket.recv(BUFFER_SIZE)
-            if not data:
+            if data == b"<END>":
                 break
             f.write(data)
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
