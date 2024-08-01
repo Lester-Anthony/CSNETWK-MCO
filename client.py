@@ -55,6 +55,7 @@ def main():
 
         try:
             # "/?"
+            
             if command_parts[0] == '/?':
                 if client_socket:
                     client_socket.send(command.encode())
@@ -62,60 +63,6 @@ def main():
                 else:
                     print("/join <server_ip_add> <port>\n/leave\n/register <handle>\n/store <filename>\n/dir\n/get <filename>\n/?")
             # "/join"
-            elif command_parts[0] == '/join':
-                if joined:
-                    print("Error: Already connected to a server. Please leave the current server before joining a new one.\n")
-                    continue
-                if len(command_parts) < 3:
-                    print("Error: Missing IP address or port number.\n")
-                    continue
-                if command_parts[1] == SERVER_HOST and command_parts[2] == str(SERVER_PORT):
-                    try:
-                        if client_socket:
-                            client_socket.close()
-                        client_socket = connect_to_server()
-                        client_socket.send(command.encode())
-                        response = client_socket.recv(BUFFER_SIZE).decode()
-                        print(response)
-                        if "successful" in response:
-                            joined = True
-                            registered = False
-                    except (ConnectionRefusedError, ConnectionResetError, BrokenPipeError):
-                        print("Error: Server may be closed, unestablished connection.\n")
-                        if client_socket:
-                            client_socket.close()
-                        client_socket = None
-                        joined, registered = False, False
-                    except Exception as e:
-                        print(f"Error: {e}")
-                else:
-                    print("Error: Failed connection! Check the label uwu.\n")
-            # "/register"
-            elif joined and command_parts[0] == '/register':
-                if registered:
-                    print("Error: Handle registered already huhu.\n")
-                    continue
-                if len(command_parts) >= 2:
-                    if joined:
-                        client_socket.send(command.encode())
-                        response = client_socket.recv(BUFFER_SIZE).decode()
-                        print(response)
-                        if "Welcome" in response:
-                            registered = True
-                    else:
-                        print("Error: Failed connection! Check the label uwu.\n")
-                else:
-                    print("Error: Command parameters do not match, missing, or is not allowed.\n")
-            #  "/leave"
-            elif joined and command_parts[0] == '/leave':
-                if client_socket:
-                    client_socket.send(command.encode())
-                    print(client_socket.recv(BUFFER_SIZE).decode())
-                    client_socket.close()
-                    joined = False
-                    registered = False
-            
-            # "/store"
             elif joined and registered and command_parts[0] == '/store':
                 if len(command_parts) == 2:
                     store_file(client_socket, command_parts[1])
@@ -148,6 +95,61 @@ def main():
                     print("Error: Failed connection! Check the label uwu.\n")
                 else:
                     print("Error: Failed connection! Check the label uwu.\n")
+            
+            elif command_parts[0] == '/join':
+                if joined:
+                    print("Error: Already connected to a server. Please leave the current server before joining a new one.\n")
+                    continue
+                if len(command_parts) < 3:
+                    print("Error: Missing IP address or port number.\n")
+                    continue
+                if command_parts[1] == SERVER_HOST and command_parts[2] == str(SERVER_PORT):
+                    try:
+                        if client_socket:
+                            client_socket.close()
+                        client_socket = connect_to_server()
+                        client_socket.send(command.encode())
+                        response = client_socket.recv(BUFFER_SIZE).decode()
+                        print(response)
+                        if "successful" in response:
+                            joined = True
+                            registered = False
+                    except (ConnectionRefusedError, ConnectionResetError, BrokenPipeError):
+                        print("Error: Server may be closed, unestablished connection.\n")
+                        if client_socket:
+                            client_socket.close()
+                        client_socket = None
+                        joined, registered = False, False
+                    except Exception as e:
+                        print(f"Error: {e}")
+                else:
+                    print("Error: Failed connection! Check the label uwu.\n")
+            #  "/leave"
+            elif joined and command_parts[0] == '/leave':
+                if client_socket:
+                    client_socket.send(command.encode())
+                    print(client_socket.recv(BUFFER_SIZE).decode())
+                    client_socket.close()
+                    joined = False
+                    registered = False
+            # "/register"
+            elif joined and command_parts[0] == '/register':
+                if registered:
+                    print("Error: Handle registered already huhu.\n")
+                    continue
+                if len(command_parts) >= 2:
+                    if joined:
+                        client_socket.send(command.encode())
+                        response = client_socket.recv(BUFFER_SIZE).decode()
+                        print(response)
+                        if "Welcome" in response:
+                            registered = True
+                    else:
+                        print("Error: Failed connection! Check the label uwu.\n")
+                else:
+                    print("Error: Command parameters do not match, missing, or is not allowed.\n")
+            
+            # "/store"
             # NONEXISTENT COMMAND
             else:
                 print("Error: Command nonexistent.\n")
