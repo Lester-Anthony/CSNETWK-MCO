@@ -45,7 +45,7 @@ def handle_client(client_socket, addr):
                     if command[1] == SERVER_HOST and command[2] == str(SERVER_PORT):
                         joined = True
                         client_socket.send("Connection to the File Exchange Server is successful!\n".encode())
-                    # error message: parameters are wrong
+                    # error: faulty params
                     else:
                         client_socket.send("Error: Connection to the Server has failed! Please check IP Address and Port Number.\n".encode())
                 else:
@@ -58,32 +58,27 @@ def handle_client(client_socket, addr):
                     registered = True
                 else:
                     client_socket.send("Error: Command parameters do not match, missing, or is not allowed.\n".encode())
-            
             # '/leave'
             elif joined and command[0] == '/leave' and len(command) == 1:
                 client_socket.send("Connection closed. Thank you!\n".encode())
                 client_socket.close()
                 break
 
-            # '/store <filename>'
+            # "/store <filename>""
             elif joined and registered and command[0] == '/store':
                 if len(command) == 2:
                     handle_store(client_socket, command[1])
                 else:
                     client_socket.send("Error: Command parameters do not match, missing, or is not allowed.\n".encode())
-            
-            # '/dir'
+            # "/dir"
             elif joined and registered and command[0] == '/dir' and len(command) == 1:
                 handle_dir(client_socket)
-            
-            # '/get <filename>'
+            # "/get <filename>""
             elif joined and registered and command[0] == '/get':
                 if len(command) == 2:
                     handle_get(client_socket, command[1])
                 else:
-                     client_socket.send("Error: Command parameters do not match, missing, or is not allowed.\n".encode())
-
-            # error message: client unregistered
+                     client_socket.send("Error: Command parameters do not match, missing, or is not allowed.\n".encode())            # error message: client unregistered
             elif joined and not registered: 
                 if command[0] == '/store' and len(command) == 2:
                     client_socket.send("Error: Client must be registered to access this feature.\n".encode())
@@ -93,7 +88,6 @@ def handle_client(client_socket, addr):
                     client_socket.send("Error: Client must be registered to access this feature.\n".encode())
                 else:
                     client_socket.send("Error: Client must be registered to access this feature.\n".encode())
-
             # error messages: client unjoined
             elif not joined:
                 if command[0] == '/?':
@@ -103,8 +97,7 @@ def handle_client(client_socket, addr):
                 elif command[0] == '/register':
                     client_socket.send("Error: Connection to the Server has failed! Please check IP Address and Port Number.\n".encode())
                 else:
-                    client_socket.send("Error: Connection to the Server has failed! Please check IP Address and Port Number.\n".encode())
-            
+                    client_socket.send("Error: Connection to the Server has failed! Please check IP Address and Port Number.\n".encode()) 
             else:
                 client_socket.send("Error: Command not found.\n".encode())
 

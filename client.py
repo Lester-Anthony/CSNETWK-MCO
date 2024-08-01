@@ -50,19 +50,18 @@ def main():
 
         # check if command starts with '/'
         if not command.startswith('/'):
-            print("Error: Command not found.\n")
+            print("Error: Command nonexistent.\n")
             continue
 
         try:
-            # '/?' 
+            # "/?"
             if command_parts[0] == '/?':
                 if client_socket:
                     client_socket.send(command.encode())
                     print(client_socket.recv(BUFFER_SIZE).decode())
                 else:
                     print("/join <server_ip_add> <port>\n/leave\n/register <handle>\n/store <filename>\n/dir\n/get <filename>\n/?")
-            
-            # '/join'
+            # "/join"
             elif command_parts[0] == '/join':
                 if joined:
                     print("Error: Already connected to a server. Please leave the current server before joining a new one.\n")
@@ -82,7 +81,7 @@ def main():
                             joined = True
                             registered = False
                     except (ConnectionRefusedError, ConnectionResetError, BrokenPipeError):
-                        print("Error: Could not connect to the server. The server may be closed.\n")
+                        print("Error: Server may be closed, unestablished connection.\n")
                         if client_socket:
                             client_socket.close()
                         client_socket = None
@@ -90,12 +89,11 @@ def main():
                     except Exception as e:
                         print(f"Error: {e}")
                 else:
-                    print("Error: Connection to the Server has failed! Please check IP Address and Port Number.\n")
-        
-            # '/register'
+                    print("Error: Failed connection! Check the label uwu.\n")
+            # "/register"
             elif joined and command_parts[0] == '/register':
                 if registered:
-                    print("Error: Handle already registered. You cannot register again.\n")
+                    print("Error: Handle registered already huhu.\n")
                     continue
                 if len(command_parts) >= 2:
                     if joined:
@@ -105,11 +103,10 @@ def main():
                         if "Welcome" in response:
                             registered = True
                     else:
-                        print("Error: Connection to the Server has failed! Please check IP Address and Port Number.\n")
+                        print("Error: Failed connection! Check the label uwu.\n")
                 else:
                     print("Error: Command parameters do not match, missing, or is not allowed.\n")
-
-            #  '/leave'
+            #  "/leave"
             elif joined and command_parts[0] == '/leave':
                 if client_socket:
                     client_socket.send(command.encode())
@@ -141,24 +138,22 @@ def main():
                     print("Error: Client must be registered to access this feature.\n")
                 else:
                     print("Error: Client must be registered to access this feature.\n")
-
-            # error messages: client unjoined
+            # errOR WHEN CLIENT IS NOT CONNECTED
             elif not joined:
                 if command_parts[0] == '/?':
                     print("/join <server_ip_add> <port>\n/leave\n/register <handle>\n/store <filename>\n/dir\n/get <filename>\n/?")
                 elif command_parts[0] == '/leave':
                     print("Error: Disconnection failed. Please connect to the server first.\n")
                 elif command_parts[0] == '/register':
-                    print("Error: Connection to the Server has failed! Please check IP Address and Port Number.\n")
+                    print("Error: Failed connection! Check the label uwu.\n")
                 else:
-                    print("Error: Connection to the Server has failed! Please check IP Address and Port Number.\n")
-            
-            # unknown command
+                    print("Error: Failed connection! Check the label uwu.\n")
+            # NONEXISTENT COMMAND
             else:
-                print("Error: Command not found.\n")
+                print("Error: Command nonexistent.\n")
 
         except (ConnectionResetError, BrokenPipeError):
-            print("Error: The server has been closed. You have been disconnected.\n")
+            print("Error: You have been disconnected.\n")
             if client_socket:
                 client_socket.close()
             client_socket = None
